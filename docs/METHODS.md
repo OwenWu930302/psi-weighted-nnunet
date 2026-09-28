@@ -174,7 +174,7 @@ $$L = \frac{\sum_i w_i \cdot L_{\text{base+DS}}(x_i)}{\sum_i w_i}, \qquad w_i \i
 | Ψ9 | 巢狀關係 | 巢狀結構一致性 |
 | Ψ10 | 中心偏移 | 結構質心距離，正規化 |
 
-算法見 `psi/psi_core.py`。Ψ 只由預測遮罩計算，**不使用 GT**。BTCV 的 Ψ8 以**同一折**模型重新推論（`psi/run_psi8_btcv.py`），確保仍為 OOF。
+算法見 `psi/run_all_psi.py`。Ψ 只由預測遮罩計算，**不使用 GT**。BTCV 的 Ψ8 以**同一折**模型重新推論（`psi/run_psi8_btcv.py`），確保仍為 OOF。
 
 ### 5.2 病例層級聚合
 

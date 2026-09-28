@@ -88,7 +88,7 @@ nnUNetv2_evaluate_folder <labelsTs> <預測資料夾> -djfile <dataset.json> -pf
 ```bash
 python3 analysis/final_report.py      # → tree_features/final_report/*.csv
 python3 analysis/dice_tables.py       # → tree_features/dice_tables/*.csv
-python3 analysis/plot_dice_hist.py    # Dice 分布圖
+python3 analysis/plot_dice.py         # Dice 分布圖與配對差異圖
 ```
 
 ## 8. 驗證
