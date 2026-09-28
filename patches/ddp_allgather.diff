@@ -1,0 +1,34 @@
+diff --git a/nnunetv2/utilities/ddp_allgather.py b/nnunetv2/utilities/ddp_allgather.py
+index 70ee45f..403d780 100644
+--- a/nnunetv2/utilities/ddp_allgather.py
++++ b/nnunetv2/utilities/ddp_allgather.py
+@@ -30,19 +30,24 @@ class AllGatherGrad(torch.autograd.Function):
+         tensor: torch.Tensor,
+         group: Optional["torch.distributed.ProcessGroup"] = None,
+     ) -> torch.Tensor:
++        # 單 GPU / 未初始化分散式：直接回傳，並在最前面加一個維度模擬 stack(dim=0)
++        if not torch.distributed.is_available() or not torch.distributed.is_initialized():
++            ctx.group = None
++            ctx.no_dist = True
++            return tensor.unsqueeze(0)
++        ctx.no_dist = False
+         ctx.group = group
+-
+         gathered_tensor = [torch.zeros_like(tensor) for _ in range(torch.distributed.get_world_size())]
+-
+         torch.distributed.all_gather(gathered_tensor, tensor, group=group)
+         gathered_tensor = torch.stack(gathered_tensor, dim=0)
+-
+         return gathered_tensor
+ 
+     @staticmethod
+     def backward(ctx: Any, *grad_output: torch.Tensor) -> Tuple[torch.Tensor, None]:
++        # 單 GPU：把前面 unsqueeze(0) 加的維度去掉即可
++        if getattr(ctx, "no_dist", False):
++            grad_output = torch.cat(grad_output)
++            return grad_output[0], None
+         grad_output = torch.cat(grad_output)
+-
+         torch.distributed.all_reduce(grad_output, op=torch.distributed.ReduceOp.SUM, async_op=False, group=ctx.group)
+-
+         return grad_output[torch.distributed.get_rank()], None

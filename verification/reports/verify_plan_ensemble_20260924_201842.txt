@@ -1,0 +1,108 @@
+############################################################
+# 規劃參數 / Ensemble 預測 驗證   2026-09-24 20:18
+############################################################
+
+===== 1. 現有 plans 是誰產生的 =====
+Dataset115_BTCV : plans_name=nnUNetPlans  planner=ExperimentPlanner
+Dataset116_ACDC : plans_name=nnUNetPlans  planner=ExperimentPlanner
+
+===== 2. 重新執行官方規劃器，與現有 plans 比對 =====
+（只重跑規劃、不重跑前處理；結果寫到另一個名稱，不覆蓋原檔）
+  Dataset115_BTCV : 2d 設定差異 ['batch_size', 'patch_size', 'data_identifier'] ；網路架構 相同
+      batch_size 現有 4 / 重算 14
+      patch_size 現有 [256, 256] / 重算 [448, 512]
+      data_identifier 現有 nnUNetPlans_2d / 重算 nnUNetPlans_verify_2d
+  Dataset116_ACDC : 2d 設定差異 ['data_identifier'] ；網路架構 相同
+      data_identifier 現有 nnUNetPlans_2d / 重算 nnUNetPlans_verify_2d
+  （驗證用的 plans 已刪除，原 nnUNetPlans.json 未被更動）
+
+===== 3. 完整規劃參數（論文用） =====
+--- Dataset115_BTCV
+    batch_size                  4
+    patch_size                  [256, 256]
+    spacing                     [1.0, 1.0]
+    median_image_size_in_voxels [414.0, 510.5]
+    normalization_schemes       ['CTNormalization']
+    use_mask_for_norm           [False]
+    batch_dice                  True
+    network                     PlainConvUNet
+    n_stages                    7
+    features_per_stage          [32, 64, 128, 256, 512, 512, 512]
+    strides                     [[1, 1], [2, 2], [2, 2], [2, 2], [2, 2], [2, 2], [2, 2]]
+    n_conv_per_stage            [2, 2, 2, 2, 2, 2, 2]
+    norm_op                     InstanceNorm2d
+    nonlin                      LeakyReLU
+--- Dataset116_ACDC
+    batch_size                  56
+    patch_size                  [256, 224]
+    spacing                     [1.5625, 1.5625]
+    median_image_size_in_voxels [240.0, 206.0]
+    normalization_schemes       ['ZScoreNormalization']
+    use_mask_for_norm           [False]
+    batch_dice                  True
+    network                     PlainConvUNet
+    n_stages                    6
+    features_per_stage          [32, 64, 128, 256, 512, 512]
+    strides                     [[1, 1], [2, 2], [2, 2], [2, 2], [2, 2], [2, 2]]
+    n_conv_per_stage            [2, 2, 2, 2, 2, 2]
+    norm_op                     InstanceNorm2d
+    nonlin                      LeakyReLU
+
+===== 4. 官方推論程式的預設值（未修改，見版本驗證報告） =====
+--- 推論入口 nnUNetv2_predict 的參數預設
+    parser.add_argument('-f', nargs='+', type=str, required=False, default=(0, 1, 2, 3, 4),
+                        help='Specify the folds of the trained model that should be used for prediction. '
+    parser.add_argument('-step_size', type=float, required=False, default=0.5,
+                        help='Step size for sliding window prediction. The larger it is the faster but less accurate '
+    parser.add_argument('--disable_tta', action='store_true', required=False, default=False,
+                        help='Set this flag to disable test time data augmentation in the form of mirroring. Faster, '
+    parser.add_argument('--save_probabilities', action='store_true',
+                        help='Set this to export predicted class "probabilities". Required if you want to ensemble '
+    parser.add_argument('-chk', type=str, required=False, default='checkpoint_final.pth',
+                        help='Name of the checkpoint you want to use. Default: checkpoint_final.pth')
+    parser.add_argument('-npp', type=int, required=False, default=3,
+    parser.add_argument('-f', nargs='+', type=str, required=False, default=(0, 1, 2, 3, 4),
+                        help='Specify the folds of the trained model that should be used for prediction. '
+    parser.add_argument('-step_size', type=float, required=False, default=0.5,
+                        help='Step size for sliding window prediction. The larger it is the faster but less accurate '
+    parser.add_argument('--disable_tta', action='store_true', required=False, default=False,
+                        help='Set this flag to disable test time data augmentation in the form of mirroring. Faster, '
+    parser.add_argument('--save_probabilities', action='store_true',
+                        help='Set this to export predicted class "probabilities". Required if you want to ensemble '
+    parser.add_argument('-chk', type=str, required=False, default='checkpoint_final.pth',
+
+--- nnUNetPredictor 建構子預設
+    def __init__(self,
+                 tile_step_size: float = 0.5,
+                 use_gaussian: bool = True,
+                 use_mirroring: bool = True,
+                 perform_everything_on_device: bool = True,
+                 device: torch.device = torch.device('cuda'),
+                 verbose: bool = False,
+                 verbose_preprocessing: bool = False,
+                 allow_tqdm: bool = True):
+
+===== 5. Ensemble 如何合併各折（官方程式碼） =====
+511-        prediction = None
+512-
+513:        for params in self.list_of_parameters:
+514-
+515-            # messing with state dict names...
+516-            if not isinstance(self.network, OptimizedModule):
+517-                self.network.load_state_dict(params)
+518-            else:
+519-                self.network._orig_mod.load_state_dict(params)
+
+===== 6. 本研究實際執行的推論設定 =====
+  nnUNetTrainer_btcv_psi6w3 : 預測 12 例   save_probabilities=False   (未列出的參數皆為官方預設)
+  nnUNetTrainer_btcv_psi8w3 : 預測 12 例   save_probabilities=False   (未列出的參數皆為官方預設)
+  nnUNetTrainer : 預測 12 例   save_probabilities=False   (未列出的參數皆為官方預設)
+  acdc_test_pred : 預測 40 例   save_probabilities=False   (未列出的參數皆為官方預設)
+  acdc_test_pred_psi1w3 : 預測 40 例   save_probabilities=False   (未列出的參數皆為官方預設)
+  acdc_test_pred_psi6w3 : 預測 40 例   save_probabilities=False   (未列出的參數皆為官方預設)
+  acdc_test_pred_psi7w3 : 預測 40 例   save_probabilities=False   (未列出的參數皆為官方預設)
+
+===== 7. 各模型使用的折數（由推論 log 的進度條數推算） =====
+  （BTCV 每例 5 條 = 5 折 ensemble；ACDC 每例 1 條 = fold_all 單一模型）
+
+############################################################

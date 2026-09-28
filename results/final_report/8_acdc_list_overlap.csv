@@ -1,0 +1,5 @@
+﻿trainer,proxy,list_file,old_n,new_oof_n,overlap,jaccard,same_list
+nnUNetTrainer_500epochs_psi1w3,psi1_convex,wcases_psi1_convex.csv,48,48,40,0.7142857142857143,False
+nnUNetTrainer_500epochs_psi6w3,psi6_cc,wcases_psi6_cc.csv,46,83,36,0.3870967741935484,False
+nnUNetTrainer_500epochs_psi7w3,psi7_genus,wcases_psi7_genus.csv,20,49,9,0.15,False
+nnUNetTrainer_500epochs_psi10w3,psi10_centroid,wcases_acdc_psi10_centroid.csv,48,48,48,1.0,True

@@ -1,0 +1,198 @@
+############################################################
+# nnU-Net 版本驗證報告
+# 產生時間：2026-09-22 17:55:31
+# 主機：tkyin-WS860T
+############################################################
+
+===== 1. 程式碼來源（git remote）=====
+origin	https://github.com/MIC-DKFZ/nnUNet.git (fetch)
+origin	https://github.com/MIC-DKFZ/nnUNet.git (push)
+
+===== 2. 本機 commit 與官方標籤 v2.8.1 是否為同一個 commit =====
+本機 HEAD      : 468cf803df9b267150ae2b6c0c59b8ac84f16227
+本機標籤 v2.8.1  : 468cf803df9b267150ae2b6c0c59b8ac84f16227
+GitHub 官方即時查詢（git ls-remote，不依賴本機資料）：
+468cf803df9b267150ae2b6c0c59b8ac84f16227	refs/tags/v2.8.1
+結果：✓ 本機 HEAD 就是官方 v2.8.1 發布版本
+
+===== 3. 相對官方 v2.8.1，所有被改動的官方檔案 =====
+（M = 修改, D = 刪除；此處只列官方原本就有的檔案）
+D	documentation/changelog.md
+D	documentation/how-to/share-models-with-custom-trainers.md
+D	nnunetv2/dataset_conversion/Dataset223_AMOS2022postChallenge.py
+M	nnunetv2/utilities/ddp_allgather.py
+
+===== 4. 被修改（M）檔案的完整差異 =====
+diff --git a/nnunetv2/utilities/ddp_allgather.py b/nnunetv2/utilities/ddp_allgather.py
+index 70ee45f..403d780 100644
+--- a/nnunetv2/utilities/ddp_allgather.py
++++ b/nnunetv2/utilities/ddp_allgather.py
+@@ -30,19 +30,24 @@ class AllGatherGrad(torch.autograd.Function):
+         tensor: torch.Tensor,
+         group: Optional["torch.distributed.ProcessGroup"] = None,
+     ) -> torch.Tensor:
++        # 單 GPU / 未初始化分散式：直接回傳，並在最前面加一個維度模擬 stack(dim=0)
++        if not torch.distributed.is_available() or not torch.distributed.is_initialized():
++            ctx.group = None
++            ctx.no_dist = True
++            return tensor.unsqueeze(0)
++        ctx.no_dist = False
+         ctx.group = group
+-
+         gathered_tensor = [torch.zeros_like(tensor) for _ in range(torch.distributed.get_world_size())]
+-
+         torch.distributed.all_gather(gathered_tensor, tensor, group=group)
+         gathered_tensor = torch.stack(gathered_tensor, dim=0)
+-
+         return gathered_tensor
+ 
+     @staticmethod
+     def backward(ctx: Any, *grad_output: torch.Tensor) -> Tuple[torch.Tensor, None]:
++        # 單 GPU：把前面 unsqueeze(0) 加的維度去掉即可
++        if getattr(ctx, "no_dist", False):
++            grad_output = torch.cat(grad_output)
++            return grad_output[0], None
+         grad_output = torch.cat(grad_output)
+-
+         torch.distributed.all_reduce(grad_output, op=torch.distributed.ReduceOp.SUM, async_op=False, group=ctx.group)
+-
+         return grad_output[torch.distributed.get_rank()], None
+
+===== 5. 核心訓練 / loss / 推論檔案逐檔比對 =====
+（比對方式：本機檔案的 git blob hash 與官方 v2.8.1 中同一檔案的 hash；相同代表逐位元組完全一致）
+  ✓  完全相同   nnunetv2/training/nnUNetTrainer/nnUNetTrainer.py   (487b977c52bce60c44caec8d9459077bf0817f60)
+  ✓  完全相同   nnunetv2/training/nnUNetTrainer/variants/training_length/nnUNetTrainer_Xepochs.py   (335b365c11fb01213d8db6733f7a622f10e13339)
+  ✓  完全相同   nnunetv2/training/loss/compound_losses.py   (900acf155c8b9459a181ce4edc3dc1db5a6ae0c1)
+  ✓  完全相同   nnunetv2/training/loss/dice.py   (6ec0540d21c961e8933139ac60640ec4b33130c3)
+  ✓  完全相同   nnunetv2/training/loss/robust_ce_loss.py   (3399e3ae9501863d4cb82f9776174a398ec1073b)
+  ✓  完全相同   nnunetv2/training/loss/deep_supervision.py   (d467c69dab232a9066391ec3ff679054c1649bf3)
+  ✓  完全相同   nnunetv2/training/dataloading/data_loader.py   (46007b0fe3baec93700961be537753f09d7976a6)
+  ✓  完全相同   nnunetv2/run/run_training.py   (d6e26c6195e07d5168e327a2b12c5a79a7cc62d0)
+  ✓  完全相同   nnunetv2/inference/predict_from_raw_data.py   (9b5b92a188fa571ada706fc02c0816e7ddbf6710)
+  ✓  完全相同   nnunetv2/experiment_planning/plan_and_preprocess_entrypoints.py   (881c341af6559cb22ac8c81c06d3a476b3f4ce17)
+
+===== 6. 新增的檔案（官方沒有，git 未追蹤）=====
+?? acdc_test_pred/
+?? acdc_test_pred_psi1w3/
+?? acdc_test_pred_psi6w3/
+?? acdc_test_pred_psi7w3/
+?? acdc_train_pred/
+?? convert_acdc_to_nnunet.py
+?? convert_btcv_to_nnunet.py
+?? nnunetv2/training/nnUNetTrainer/nnUNetTrainerSAMAUNet.py
+?? nnunetv2/training/nnUNetTrainer/variants/training_length/nnUNetTrainer_PsiWeighted.py
+?? nnunetv2/training/nnUNetTrainer/variants/training_length/nnUNetTrainer_PsiWeighted.py.bak_acdc
+?? run_remaining_folds.sh
+
+===== 7. Python 實際載入的 nnU-Net =====
+載入路徑: /home/tkyin/桌面/論文/nnUNet/nnunetv2
+Version: 2.8.1
+Editable project location: /home/tkyin/桌面/論文/nnUNet
+
+===== 8. Ψ 加權 trainer：檔案指紋 =====
+b3d7c8046d11593049bcaadab0ca391415457379362adc356f6c85bb822162d2  nnunetv2/training/nnUNetTrainer/variants/training_length/nnUNetTrainer_PsiWeighted.py
+繼承關係與覆寫的方法：
+75:class nnUNetTrainer_PsiWeighted(nnUNetTrainer):
+83:    def __init__(self, plans: dict, configuration: str, fold: int, dataset_json: dict,
+95:    def on_train_start(self):
+104:    def _sample_slice(self, x, i):
+110:    def _weights_for(self, keys, n):
+121:    def train_step(self, batch: dict) -> dict:
+164:    def on_train_epoch_end(self, train_outputs):
+181:class nnUNetTrainer_500epochs_psi1w3(nnUNetTrainer_PsiWeighted):
+183:    def __init__(self, plans, configuration, fold, dataset_json,
+190:class nnUNetTrainer_500epochs_psi6w3(nnUNetTrainer_PsiWeighted):
+192:    def __init__(self, plans, configuration, fold, dataset_json,
+199:class nnUNetTrainer_500epochs_psi7w3(nnUNetTrainer_PsiWeighted):
+201:    def __init__(self, plans, configuration, fold, dataset_json,
+208:class nnUNetTrainer_btcv_psi1w3(nnUNetTrainer_PsiWeighted):
+211:    def __init__(self, plans, configuration, fold, dataset_json, device=torch.device('cuda')):
+217:class nnUNetTrainer_btcv_psi6w3(nnUNetTrainer_PsiWeighted):
+220:    def __init__(self, plans, configuration, fold, dataset_json, device=torch.device('cuda')):
+226:class nnUNetTrainer_btcv_psi8w3(nnUNetTrainer_PsiWeighted):
+229:    def __init__(self, plans, configuration, fold, dataset_json, device=torch.device('cuda')):
+235:class nnUNetTrainer_btcv_w1ctrl(nnUNetTrainer_PsiWeighted):
+238:    def __init__(self, plans, configuration, fold, dataset_json, device=torch.device('cuda')):
+
+===== 9. Ψ 加權 trainer：train_step 完整內容（含行號）=====
+ 121      def train_step(self, batch: dict) -> dict:
+ 122          data = batch['data']
+ 123          target = batch['target']
+ 124          keys = batch.get('keys')
+ 125  
+ 126          data = data.to(self.device, non_blocking=True)
+ 127          if isinstance(target, list):
+ 128              target = [i.to(self.device, non_blocking=True) for i in target]
+ 129          else:
+ 130              target = target.to(self.device, non_blocking=True)
+ 131  
+ 132          n = data.shape[0]
+ 133          w = self._weights_for(keys, n).to(self.device)
+ 134  
+ 135          self.optimizer.zero_grad(set_to_none=True)
+ 136          with autocast(self.device.type, enabled=True) if self.device.type == 'cuda' else dummy_context():
+ 137              output = self.network(data)
+ 138  
+ 139              if torch.allclose(w, torch.ones_like(w)):
+ 140                  # 這個 batch 沒有任何加權樣本，走原始路徑（較快且數值一致）
+ 141                  l = self.loss(output, target)
+ 142              else:
+ 143                  # 逐樣本算 loss 後加權平均，分母為權重和以維持尺度
+ 144                  total = 0.0
+ 145                  for i in range(n):
+ 146                      li = self.loss(self._sample_slice(output, i),
+ 147                                     self._sample_slice(target, i))
+ 148                      total = total + w[i] * li
+ 149                  l = total / w.sum()
+ 150  
+ 151          if self.grad_scaler is not None:
+ 152              self.grad_scaler.scale(l).backward()
+ 153              self.grad_scaler.unscale_(self.optimizer)
+ 154              torch.nn.utils.clip_grad_norm_(self.network.parameters(), 12)
+ 155              self.grad_scaler.step(self.optimizer)
+ 156              self.grad_scaler.update()
+ 157          else:
+ 158              l.backward()
+ 159              torch.nn.utils.clip_grad_norm_(self.network.parameters(), 12)
+ 160              self.optimizer.step()
+ 161  
+ 162          return {'loss': l.detach().cpu().numpy()}
+ 163  
+
+===== 10. 官方 nnUNetTrainer.train_step（v2.8.1 原版，供對照）=====
+1019      def train_step(self, batch: dict) -> dict:
+1020          data = batch['data']
+1021          target = batch['target']
+1022  
+1023          data = data.to(self.device, non_blocking=True)
+1024          if isinstance(target, list):
+1025              target = [i.to(self.device, non_blocking=True) for i in target]
+1026          else:
+1027              target = target.to(self.device, non_blocking=True)
+1028  
+1029          self.optimizer.zero_grad(set_to_none=True)
+1030          # Autocast can be annoying
+1031          # If the device_type is 'cpu' then it's slow as heck and needs to be disabled.
+1032          # If the device_type is 'mps' then it will complain that mps is not implemented, even if enabled=False is set. Whyyyyyyy. (this is why we don't make use of enabled=False)
+1033          # So autocast will only be active if we have a cuda device.
+1034          with autocast(self.device.type, enabled=True) if self.device.type == 'cuda' else dummy_context():
+1035              output = self.network(data)
+1036              # del data
+1037              l = self.loss(output, target)
+1038  
+1039          if self.grad_scaler is not None:
+1040              self.grad_scaler.scale(l).backward()
+1041              self.grad_scaler.unscale_(self.optimizer)
+1042              torch.nn.utils.clip_grad_norm_(self.network.parameters(), 12)
+1043              self.grad_scaler.step(self.optimizer)
+1044              self.grad_scaler.update()
+1045          else:
+1046              l.backward()
+1047              torch.nn.utils.clip_grad_norm_(self.network.parameters(), 12)
+1048              self.optimizer.step()
+1049          return {'loss': l.detach().cpu().numpy()}
+1050  
+
+############################################################
+# 報告結束
+############################################################

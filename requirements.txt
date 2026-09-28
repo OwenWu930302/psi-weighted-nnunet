@@ -1,0 +1,11 @@
+# nnU-Net 請依 README 以 editable 方式安裝官方 v2.8.1
+torch==2.5.1
+numpy==1.26.4
+pandas==2.3.3
+scipy==1.15.2
+scikit-learn==1.7.2
+scikit-image==0.25.2
+SimpleITK==2.5.5
+nibabel==5.4.2
+matplotlib==3.10.9
+opencv-python-headless

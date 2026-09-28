@@ -1,0 +1,13 @@
+# 資料、權重、預測遮罩不上傳
+*.nii
+*.nii.gz
+*.npz
+*.npy
+*.b2nd
+*.pkl
+*.pth
+nnUNet_data/
+*_pred*/
+__pycache__/
+*.bak*
+*.log

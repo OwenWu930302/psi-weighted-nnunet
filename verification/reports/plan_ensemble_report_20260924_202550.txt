@@ -1,0 +1,89 @@
+================================================================
+ 規劃參數與 Ensemble 預測設定   2026-09-24 20:25   tkyin-WS860T
+================================================================
+
+【1】現有 plans 的產生者與時間
+  Dataset115_BTCV    plans_name=nnUNetPlans  planner=ExperimentPlanner  產生於 2026-07-27 18:23
+  Dataset116_ACDC    plans_name=nnUNetPlans  planner=ExperimentPlanner  產生於 2026-07-29 13:53
+
+【2】與官方規劃器重算結果的逐項比對
+     方法：重跑 nnUNetv2_plan_experiment -pl ExperimentPlanner，寫入暫存名稱後比對，
+           比對完刪除暫存檔，原 nnUNetPlans.json 全程未更動。
+  --- Dataset115_BTCV
+    configuration        欄位           現有                         官方重算                       判定
+    2d                   batch_size   4                          14                         不同
+    2d                   patch_size   [256, 256]                 [448, 512]                 不同
+    3d_lowres            (全部欄位)       —                          —                          完全相同
+    3d_fullres           (全部欄位)       —                          —                          完全相同
+    3d_cascade_fullres   (全部欄位)       —                          —                          完全相同
+  --- Dataset116_ACDC
+    configuration        欄位           現有                         官方重算                       判定
+    2d                   (全部欄位)       —                          —                          完全相同
+    3d_fullres           (全部欄位)       —                          —                          完全相同
+
+【3】實際使用的規劃參數（2D，本研究採用）
+  參數                           BTCV (115)                   ACDC (116)
+  batch_size                   4                            56
+  patch_size                   [256, 256]                   [256, 224]
+  spacing                      [1.0, 1.0]                   [1.5625, 1.5625]
+  median_image_size_in_voxels  [414.0, 510.5]               [240.0, 206.0]
+  normalization_schemes        ['CTNormalization']          ['ZScoreNormalization']
+  use_mask_for_norm            [False]                      [False]
+  batch_dice                   True                         True
+  network                      PlainConvUNet                PlainConvUNet
+  n_stages                     7                            6
+  features_per_stage           [32, 64, 128, 256, 512, 512, 512] [32, 64, 128, 256, 512, 512]
+  n_conv_per_stage             [2, 2, 2, 2, 2, 2, 2]        [2, 2, 2, 2, 2, 2]
+  norm_op                      InstanceNorm2d               InstanceNorm2d
+  nonlin                       LeakyReLU                    LeakyReLU
+
+【4】Ensemble 預測：官方程式碼的預設值
+  參數                     說明                       官方預設
+  -f                     使用的折數                    (0
+  -step_size             滑動視窗步長                   0.5
+  --disable_tta          關閉鏡像增強                   False
+  -chk                   checkpoint 檔名            'checkpoint_final.pth'
+  --save_probabilities   輸出機率圖                    False（未指定即為 False）
+
+  nnUNetPredictor 建構子預設：
+     tile_step_size: float = 0.5
+     use_gaussian: bool = True
+     use_mirroring: bool = True
+     perform_everything_on_device: bool = True
+     device: torch.device = torch.device('cuda')
+     verbose: bool = False
+     verbose_preprocessing: bool = False
+     allow_tqdm: bool = True
+
+【5】Ensemble 如何合併多折（官方程式碼，未修改）
+529:        if len(self.list_of_parameters) > 1:
+530:            prediction /= len(self.list_of_parameters)
+531-
+532-        if self.verbose:
+533-            print('Prediction done')
+--
+642:                    prediction = self._internal_maybe_mirror_and_predict(workon)[0].to(results_device)
+643-
+644-                    if self.use_gaussian:
+645-                        prediction *= gaussian
+
+【6】本研究實際的推論設定與折數
+  預測資料夾                    例數   save_probabilities 模型可用折數
+  nnUNetTrainer_btcv_psi6w3          12       False              5 個 fold 目錄
+  nnUNetTrainer_btcv_psi8w3          12       False              5 個 fold 目錄
+  nnUNetTrainer                      12       False              5 個 fold 目錄
+  acdc_test_pred                     40       False              6 個 fold 目錄
+  acdc_test_pred_psi1w3              40       False              1 個 fold 目錄
+  acdc_test_pred_psi6w3              40       False              1 個 fold 目錄
+  acdc_test_pred_psi7w3              40       False              1 個 fold 目錄
+
+【7】結論
+  (a) ACDC：2d / 3d_fullres 全部欄位與官方規劃器重算結果完全相同。
+  (b) BTCV：3d_lowres / 3d_fullres 相同；2d 的 batch_size 與 patch_size 與官方重算不同
+      （現有 4 / [256,256]；官方重算 14 / [448,512]）。其餘欄位與網路架構相同。
+      差異僅出現在 2d，3d 不受影響，推測為當初針對 2d 另行指定所致。
+      anchor 與所有專家模型皆使用同一份 plans，故模型間比較仍為公平對照。
+  (c) Ensemble 與推論流程使用官方 nnUNetPredictor 預設值，推論程式碼未修改
+      （見 nnunet_verification 報告：predict_from_raw_data.py 與 v2.8.1 逐位元組相同）。
+  (d) 所有模型皆未套用後處理。
+================================================================
