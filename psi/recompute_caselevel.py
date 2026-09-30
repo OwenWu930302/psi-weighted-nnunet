@@ -52,7 +52,7 @@ from scipy.stats import mannwhitneyu, spearmanr
 from sklearn.metrics import roc_auc_score, f1_score
 from sklearn.model_selection import StratifiedKFold
 
-TF   = os.path.expanduser('~/桌面/論文/tree_features')
+TF   = os.path.join(os.environ.get('PSI_ROOT', os.path.expanduser('~/桌面/論文')), 'tree_features')
 PSI  = ['psi1_convex','psi2_shadow','psi3_inclusion','psi4_adjacency','psi5_exclusion',
         'psi6_cc','psi7_genus','psi8_rotation','psi9_nesting','psi10_centroid']
 QUANTILES = [0.20, 0.30]

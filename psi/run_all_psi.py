@@ -31,7 +31,7 @@ except ImportError:
 from scipy.ndimage import label as cclabel, binary_fill_holes
 from PIL import Image
 
-R = os.path.expanduser('~/桌面/論文')
+R = os.environ.get('PSI_ROOT', os.path.expanduser('~/桌面/論文'))
 OUT = os.path.join(R, 'tree_features')
 os.makedirs(OUT, exist_ok=True)
 DELTA = 0.80

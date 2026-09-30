@@ -176,7 +176,7 @@ class nnUNetTrainer_PsiWeighted(nnUNetTrainer):
 # 三個 proxy 各自的專家：清單路徑寫死，避免忘記設環境變數
 # ============================================================
 
-_TF = os.path.expanduser('~/桌面/論文/tree_features')
+_TF = os.path.join(os.environ.get('PSI_ROOT', os.path.expanduser('~/桌面/論文')), 'tree_features')
 
 
 class nnUNetTrainer_500epochs_psi1w3(nnUNetTrainer_PsiWeighted):

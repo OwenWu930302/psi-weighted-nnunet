@@ -34,7 +34,7 @@ import re
 import numpy as np
 import pandas as pd
 
-H = os.path.expanduser('~/桌面/論文')
+H = os.environ.get('PSI_ROOT', os.path.expanduser('~/桌面/論文'))
 RES = f'{H}/nnUNet_data/nnUNet_results'
 TF = f'{H}/tree_features'
 OUT = f'{TF}/dice_tables'
@@ -60,6 +60,7 @@ MODELS = {
         'psi6w3':   ('nnUNetTrainer_500epochs_psi6w3',  f'{H}/nnUNet/acdc_test_pred_psi6w3'),
         'psi7w3':   ('nnUNetTrainer_500epochs_psi7w3',  f'{H}/nnUNet/acdc_test_pred_psi7w3'),
         'psi10w3':  ('nnUNetTrainer_500epochs_psi10w3', f'{H}/nnUNet/acdc_test_pred_psi10w3'),
+        'ps1ctrl':  ('nnUNetTrainer_500epochs_ps1ctrl', f'{H}/nnUNet/acdc_test_pred_ps1ctrl'),
     },
 }
 DSID = {'BTCV': 'Dataset115_BTCV', 'ACDC': 'Dataset116_ACDC'}
@@ -121,7 +122,7 @@ def main():
                 if D is None:
                     continue
                 wl = WL.get(trainer)
-                wset = wl[0] if (wl and wl[1] != 1.0) else set()
+                wset = wl[0] if (wl and wl[1] >= 1.01) else set()
                 rows = []
                 for case in sorted(D):
                     v = D[case]
@@ -149,8 +150,8 @@ def main():
             if m == 'baseline' or trainer not in WL:
                 continue
             wset, factor, listname = WL[trainer]
-            if factor == 1.0:
-                continue                       # w1ctrl 倍率 1.0，沒有真正加權
+            if factor < 1.01:
+                continue                       # 對照組（w1ctrl 1.0、ps1ctrl 1.0001）不列入加權對照
             E = load(ds, m, src)
             if E is None:
                 print(f'  ⚠ {ds} {m} 無 {src} 預測，跳過')

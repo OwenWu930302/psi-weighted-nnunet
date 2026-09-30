@@ -18,7 +18,7 @@ import os, glob, subprocess, csv
 import numpy as np, nibabel as nib
 from scipy.ndimage import rotate
 
-R      = os.path.expanduser('~/桌面/論文')
+R      = os.environ.get('PSI_ROOT', os.path.expanduser('~/桌面/論文'))
 RAW    = f'{R}/nnUNet_data/nnUNet_raw/Dataset115_BTCV'
 RESULT = f'{R}/nnUNet_data/nnUNet_results/Dataset115_BTCV/nnUNetTrainer__nnUNetPlans__2d'
 WORK   = f'{R}/psi8_btcv_work'

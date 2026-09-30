@@ -27,10 +27,10 @@ import numpy as np
 import SimpleITK as sitk
 from sklearn.model_selection import KFold
 
-HOME = os.path.expanduser('~/桌面/論文')
+HOME = os.environ.get('PSI_ROOT', os.path.expanduser('~/桌面/論文'))
 RAW = f'{HOME}/nnUNet_data/nnUNet_raw/Dataset116_ACDC'
 PRE = f'{HOME}/nnUNet_data/nnUNet_preprocessed/Dataset116_ACDC'
-SRC = f'{HOME}/SAMA-UNet_repo/ACDC/database/training'
+SRC = os.environ.get('ACDC_RAW', f'{HOME}/SAMA-UNet_repo/ACDC/database/training')
 MAP_OUT = f'{HOME}/tree_features/acdc_case_patient_map.csv'
 SEED = 12345
 N_FOLDS = 5

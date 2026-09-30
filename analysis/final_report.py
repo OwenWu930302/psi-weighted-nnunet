@@ -31,7 +31,7 @@ import numpy as np
 import pandas as pd
 from scipy.stats import mannwhitneyu, wilcoxon
 
-H = os.path.expanduser('~/桌面/論文')
+H = os.environ.get('PSI_ROOT', os.path.expanduser('~/桌面/論文'))
 RES = f'{H}/nnUNet_data/nnUNet_results'
 TF = f'{H}/tree_features'
 OUT = f'{TF}/final_report'
@@ -54,6 +54,7 @@ ACDC_TEST = {
     'psi6w3':  f'{H}/nnUNet/acdc_test_pred_psi6w3',
     'psi7w3':  f'{H}/nnUNet/acdc_test_pred_psi7w3',
     'psi10w3': f'{H}/nnUNet/acdc_test_pred_psi10w3',
+    'ps1ctrl': f'{H}/nnUNet/acdc_test_pred_ps1ctrl',
 }
 BTCV_OOF = {
     'anchor': f'{RES}/Dataset115_BTCV/nnUNetTrainer__nnUNetPlans__2d',

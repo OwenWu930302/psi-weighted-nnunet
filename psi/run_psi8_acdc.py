@@ -9,7 +9,7 @@ import os, glob, subprocess, csv
 import numpy as np, nibabel as nib
 from scipy.ndimage import rotate
 
-R      = os.path.expanduser('~/桌面/論文')
+R      = os.environ.get('PSI_ROOT', os.path.expanduser('~/桌面/論文'))
 IMG_IN = f'{R}/nnUNet_data/nnUNet_raw/Dataset116_ACDC/imagesTs'
 PRED0  = f'{R}/nnUNet/acdc_test_pred'
 WORK   = f'{R}/psi8_work'

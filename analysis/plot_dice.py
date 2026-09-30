@@ -22,7 +22,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 
-H = os.path.expanduser('~/桌面/論文')
+H = os.environ.get('PSI_ROOT', os.path.expanduser('~/桌面/論文'))
 SRC = f'{H}/tree_features/dice_tables'
 OUT = f'{H}/figs'
 os.makedirs(OUT, exist_ok=True)

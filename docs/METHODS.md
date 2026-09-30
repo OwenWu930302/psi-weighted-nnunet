@@ -30,6 +30,8 @@
 
 測試集標註的檔名（`case0001` 等）與 nnU-Net 編號（`BTCV_019` 等）以**影像內容逐像素比對**建立對應，不依檔名推測（對應表見 `splits/`）。
 
+**輸入資料的性質**：本研究的 BTCV 影像取自 TransUNet 公開的 Synapse 前處理資料，強度已截斷並縮放到 0–1，轉為 NIfTI 時體素間距為 1 mm（見 `configs/btcv_nnUNetPlans.json` 的 `original_median_spacing_after_transp` 與強度統計）。因此 nnU-Net 的 CTNormalization 是作用在已縮放的強度上，且體素間距不代表真實物理尺寸。
+
 ### 2.2 ACDC
 
 | 項目 | 設定 |
@@ -226,3 +228,6 @@ ACDC 的 Ψ1 / Ψ6 / Ψ7 清單是在補做 5 折之前，以 `all` 模式的訓
 4. 兩個資料集訓練長度不同（1000 / 500 epochs），各資料集內部一致。
 5. ACDC 為自行隨機切分，SAMA-UNet 原文未公開切分，絕對數值不直接比較。
 6. BTCV 18 / 12 小型測試集與 8 器官評估，nnU-Net Revisited 指出其統計雜訊偏高（折間標準差約 2.6 個百分點）。
+7. ACDC 最初判定 Ψ1 / Ψ6 / Ψ7 顯著時，使用的是**測試集**預測（`run_all_psi.py` 的 `load_acdc()`），存在測試集資訊洩漏。補做 5 折 OOF 後重新篩選，Ψ10 是唯一完全依訓練集篩選的 ACDC 專家。
+8. 在 nnU-Net 的互斥標籤輸出上，Ψ3 / Ψ9 恆為 1、Ψ4 / Ψ5 恆為 0，屬算式設計造成的結構性恆定，而非模型不犯錯（見 `docs/CODE.md` 第 7.1 節）。
+9. BTCV 輸入為 TransUNet 前處理後的資料（強度 0–1、間距 1 mm），非原始 HU 值與真實間距。

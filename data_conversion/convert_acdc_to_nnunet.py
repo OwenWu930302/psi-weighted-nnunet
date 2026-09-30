@@ -20,14 +20,16 @@ ACDC -> nnU-Net v2 格式轉換
         dataset.json
 """
 import json
+import os
 import random
 import re
 import shutil
 from pathlib import Path
 
 # ------------------------- 路徑設定 -------------------------
-ACDC_ROOT = Path('/home/tkyin/桌面/論文/SAMA-UNet_repo/ACDC/database/training')
-OUT_ROOT = Path('/home/tkyin/桌面/論文/nnUNet_data/nnUNet_raw/Dataset116_ACDC')
+ROOT = Path(os.environ.get('PSI_ROOT', os.path.expanduser('~/桌面/論文')))
+ACDC_ROOT = Path(os.environ.get('ACDC_RAW', ROOT / 'SAMA-UNet_repo/ACDC/database/training'))
+OUT_ROOT = ROOT / 'nnUNet_data/nnUNet_raw/Dataset116_ACDC'
 
 N_TRAIN_PATIENTS = 80      # 論文設定
 SEED = 42                  # 固定亂數種子，確保可重現
