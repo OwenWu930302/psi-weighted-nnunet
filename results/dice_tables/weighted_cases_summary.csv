@@ -1,0 +1,8 @@
+﻿dataset,prediction_source,expert,list_file,n,baseline,expert_dice,delta,提升,下降
+BTCV,5折OOF,psi1w3,wcases_btcv_psi1_convex.csv,5,0.7638,0.7598,-0.0041,3,2
+BTCV,5折OOF,psi6w3,wcases_btcv_psi6_cc.csv,6,0.7508,0.7387,-0.0121,2,4
+BTCV,5折OOF,psi8w3,wcases_btcv_psi8_rotation.csv,5,0.7714,0.7737,0.0024,3,2
+ACDC,fold_all訓練集預測,psi10w3,wcases_acdc_psi10_centroid.csv,48,0.9900,0.9604,-0.0296,0,48
+ACDC,fold_all訓練集預測,psi1w3,wcases_psi1_convex.csv,48,0.9889,0.9727,-0.0162,0,48
+ACDC,fold_all訓練集預測,psi6w3,wcases_psi6_cc.csv,46,0.9888,0.9638,-0.0250,0,46
+ACDC,fold_all訓練集預測,psi7w3,wcases_psi7_genus.csv,20,0.9887,0.9778,-0.0108,0,20

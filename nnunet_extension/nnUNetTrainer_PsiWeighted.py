@@ -250,3 +250,13 @@ class nnUNetTrainer_500epochs_psi10w3(nnUNetTrainer_PsiWeighted):
         os.environ['PSI_WEIGHT_CASES'] = os.path.join(_TF, 'wcases_acdc_psi10_centroid.csv')
         os.environ['PSI_WEIGHT_FACTOR'] = '3.0'
         super().__init__(plans, configuration, fold, dataset_json, device)
+
+
+class nnUNetTrainer_500epochs_ps1ctrl(nnUNetTrainer_PsiWeighted):
+    """ACDC 對照組：與 Ψ1 專家同一份清單、同一條逐樣本路徑，權重約為 1。
+    倍率 1.0001 是為了避開 train_step 中 allclose(w, 1) 的原始路徑。"""
+    NUM_EPOCHS = 500
+    def __init__(self, plans, configuration, fold, dataset_json, device=torch.device('cuda')):
+        os.environ['PSI_WEIGHT_CASES'] = os.path.join(_TF, 'wcases_psi1_convex.csv')
+        os.environ['PSI_WEIGHT_FACTOR'] = '1.0001'
+        super().__init__(plans, configuration, fold, dataset_json, device)
