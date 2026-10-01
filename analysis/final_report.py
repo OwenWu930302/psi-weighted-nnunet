@@ -157,12 +157,11 @@ def proxy_table(dataset, csv, rows):
         print(f'  ⚠ 找不到 {csv}')
         return
     d = pd.read_csv(csv)
-    k = int(round(len(d) * 0.30))
-    thr = np.sort(d['dice'].values)[k - 1]
+    thr = d['dice'].quantile(0.30)                         # 與 recompute_caselevel.py 相同（篩選時的定義）
     low = d['dice'] <= thr                                 # 含並列
     for c in [c for c in d.columns if c.startswith('psi')]:
         x = d[c]
-        if x.isna().all() or x.nunique(dropna=True) <= 1:
+        if x.isna().all() or np.ptp(x.dropna()) < 1e-6:    # 全距判斷，排除浮點等級的變異（ACDC Ψ3/Ψ9）
             rows.append(dict(dataset=dataset, proxy=c, n=len(d), low_n=int(low.sum()),
                              status='恆定或全 NaN'))
             continue
