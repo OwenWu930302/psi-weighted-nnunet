@@ -356,7 +356,10 @@ def f1_of(z, zh):
 def best_threshold(v, z):
     """回傳 (MI, 方向, 門檻, 旗標)。無變異時回傳 None。"""
     ok = ~np.isnan(v)
-    if ok.sum() < 10 or len(np.unique(v[ok])) < 3:
+    # 全距 < 1e-6 視為恆定（與 recompute_caselevel.py、final_report.py 一致）：
+    # ACDC 的 Ψ3／Ψ9 = n_LV / (n_LV + 1e-6)，相異值很多但全距僅約 1e-9，
+    # 若只看相異值數量，會把 LV 大小誤當成 Ψ3 的訊號（見 docs/CODE.md 第 7.1 節）
+    if ok.sum() < 10 or len(np.unique(v[ok])) < 3 or np.ptp(v[ok]) < 1e-6:
         return None
     cand = np.unique(np.percentile(v[ok], np.linspace(1, 99, 99)))
     best = None
@@ -409,7 +412,7 @@ def analyse(name, rows):
         vv = v[ok]
         u = len(np.unique(vv))
         bt = best_threshold(v, Z) if npos else None
-        st = '可用' if bt else ('恆定，無訊號' if u == 1 else '變異不足')
+        st = '可用' if bt else ('恆定，無訊號' if u == 1 or np.ptp(vv) < 1e-6 else '變異不足')
         if bt:
             usable[k] = bt
         print('%-26s %10.5f %10.5f %8d %8d  %s' %
