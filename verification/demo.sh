@@ -20,9 +20,9 @@ for f in nnunetv2/training/nnUNetTrainer/nnUNetTrainer.py \
 done
 
 echo
-echo "【3】我唯一改的地方（官方 1 行 → 我的 11 行）"
+echo "【3】我唯一改的地方（官方 1 行 → 我的 9 行）"
 sed -n '/if torch.allclose/,/l = total \/ w.sum()/p' nnunetv2/training/nnUNetTrainer/variants/training_length/nnUNetTrainer_PsiWeighted.py \
-  | sed 's/^/    /'
+  | grep -v '^\s*#' | sed 's/\s*#.*$//; s/^/    /'
 
 echo
 echo "【4】加權確實生效（nnU-Net 訓練時自己寫的 log，非事後編輯）"
