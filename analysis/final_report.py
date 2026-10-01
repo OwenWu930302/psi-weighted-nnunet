@@ -87,6 +87,13 @@ def load_folds(d, pattern):
 
 
 def pval(x, y):
+    # 雙尾 Wilcoxon 符號等級檢定（配對），p 值未做多重比較校正。
+    # 注意：遇到差值為 0 的配對（例如兩個模型的某器官 Dice 皆為 0），
+    # 不同 scipy 版本的處理方式不同，p 值會改變：
+    #   scipy 1.15.2（requirements.txt 指定）→ 捨去差值為 0 的配對，以精確分布計算
+    #   scipy 1.13.1（實測）                 → 改用常態近似
+    #   例：BTCV Ψ1 膽囊 p = 0.898（1.15.2）vs 0.859（1.13.1）
+    # repo 內的結果表格皆以 requirements.txt 指定的版本產生。
     d = np.asarray(y) - np.asarray(x)
     if len(d) < 2 or np.allclose(d, 0):
         return 1.0
@@ -177,6 +184,16 @@ def proxy_table(dataset, csv, rows):
 
 # ============================================================
 def main():
+    # p 值會隨 scipy 版本改變（見 pval 的註解），版本與 requirements.txt 不符時提醒
+    import scipy
+    req = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'requirements.txt')
+    want = None
+    if os.path.exists(req):
+        want = next((l.split('==')[1].strip() for l in open(req) if l.lower().startswith('scipy==')), None)
+    if want and scipy.__version__ != want:
+        print(f'⚠ scipy 版本為 {scipy.__version__}，requirements.txt 指定 {want}；'
+              f'p 值可能與 repo 內的結果不同（是否忘了 conda activate expertree？）')
+
     ov, st, wo, wide = [], [], [], []
 
     print('【測試集】')

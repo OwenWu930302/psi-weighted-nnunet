@@ -27,6 +27,14 @@ T="$PSI_ROOT/nnUNet/nnunetv2/training/nnUNetTrainer/variants/training_length/nnU
 cmp -s "$T" "$REPO/nnunet_extension/nnUNetTrainer_PsiWeighted.py" && ok "trainer 已安裝且與倉庫版本相同" || bad "trainer 未安裝或與倉庫版本不同"
 chk "trainer 可匯入（10 個類別）" "python3 -c 'import nnunetv2.training.nnUNetTrainer.variants.training_length.nnUNetTrainer_PsiWeighted as m; assert len([c for c in dir(m) if c.startswith(\"nnUNetTrainer_\")])>=10'"
 chk "其他套件（cv2, h5py, nibabel, sklearn）" "python3 -c 'import cv2, h5py, nibabel, sklearn'"
+# 會影響數值結果的套件，版本必須與 requirements.txt 完全一致。
+# 例：scipy 1.13.1 與 1.15.2 的 Wilcoxon 檢定在「差值為 0」時算法不同，p 值會改變。
+for pkg in scipy numpy pandas scikit-learn; do
+  WANT=$(grep -i "^${pkg}==" "$REPO/requirements.txt" | cut -d= -f3)
+  HAVE=$(python3 -c "import importlib.metadata as m; print(m.version('$pkg'))" 2>/dev/null)
+  if [ -n "$WANT" ] && [ "$HAVE" = "$WANT" ]; then ok "$pkg $HAVE"
+  else bad "$pkg 版本為 ${HAVE:-未安裝}，requirements.txt 要求 ${WANT:-（未列出）}（是否忘了 conda activate expertree？）"; fi
+done
 cd "$REPO"
 
 echo "【3】原始資料（nnU-Net 格式）"
