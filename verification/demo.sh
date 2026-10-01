@@ -21,7 +21,7 @@ done
 
 echo
 echo "【3】我唯一改的地方（官方 1 行 → 我的 11 行）"
-sed -n '139,149p' nnunetv2/training/nnUNetTrainer/variants/training_length/nnUNetTrainer_PsiWeighted.py \
+sed -n '/if torch.allclose/,/l = total \/ w.sum()/p' nnunetv2/training/nnUNetTrainer/variants/training_length/nnUNetTrainer_PsiWeighted.py \
   | sed 's/^/    /'
 
 echo
