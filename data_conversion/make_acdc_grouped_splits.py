@@ -13,7 +13,7 @@ ACDC：依病人分組的 5 折切分
 
 用法：
   conda activate expertree
-  cd ~/桌面/論文
+  source <倉庫>/env.sh
   python3 make_acdc_grouped_splits.py            # 只檢查、不寫檔
   python3 make_acdc_grouped_splits.py --write    # 確認無誤後寫檔
 """
@@ -27,7 +27,7 @@ import numpy as np
 import SimpleITK as sitk
 from sklearn.model_selection import KFold
 
-HOME = os.environ.get('PSI_ROOT', os.path.expanduser('~/桌面/論文'))
+HOME = os.environ.get('PSI_ROOT', os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 RAW = f'{HOME}/nnUNet_data/nnUNet_raw/Dataset116_ACDC'
 PRE = f'{HOME}/nnUNet_data/nnUNet_preprocessed/Dataset116_ACDC'
 SRC = os.environ.get('ACDC_RAW', f'{HOME}/SAMA-UNet_repo/ACDC/database/training')

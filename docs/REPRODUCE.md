@@ -3,7 +3,14 @@
 本文件從零開始，逐步重現本研究的所有結果。每一步都附有**檢查指令**與**預期結果**，請確認通過後再進行下一步。
 
 > **重要**：所有指令都在「專案工作區」執行，工作區由環境變數 `PSI_ROOT` 指定。
-> 每開一個新終端機，都要先 `conda activate` 並 `source env.sh`。
+> **每開一個新終端機**，都要先執行下面兩行（把路徑換成你實際的倉庫位置）：
+>
+> ```bash
+> conda activate expertree
+> source ~/psi_workspace/psi-weighted-nnunet/env.sh
+> ```
+>
+> `env.sh` 會以「倉庫的上一層資料夾」作為 `PSI_ROOT`，因此不需事先設定任何變數。之後的指令都使用 `$PSI_ROOT`。
 
 ---
 
@@ -52,7 +59,7 @@ cd $PSI_ROOT/nnUNet && git checkout v2.8.1 && pip install -e . && cd -
 cp nnunet_extension/nnUNetTrainer_PsiWeighted.py \
    $PSI_ROOT/nnUNet/nnunetv2/training/nnUNetTrainer/variants/training_length/
 
-# 1-6 載入路徑設定
+# 1-6 載入路徑設定（PSI_ROOT 會自動設為倉庫的上一層，即上面的 $HOME/psi_workspace）
 source env.sh
 ```
 
@@ -106,22 +113,28 @@ print('ACDC 切分一致' if a == b else '✗ 切分不一致，停止')"
 
 ### 2-2 BTCV
 
-> ⚠ **待補**：本研究使用的 `BTCV_nifti` 是由 TransUNet 公開的 Synapse 前處理資料轉換而來
-> （強度已截斷並縮放到 0–1，體素間距為 1 mm）。其下載與轉換腳本將補入 `data_conversion/`。
-> 在此之前，請確認 `$BTCV_NIFTI` 具有下列結構：
+本研究的 BTCV 使用 **TransUNet 前處理後的 Synapse 資料**（非原始 CT）：強度已截斷至 [−125, 275] 並縮放到 [0, 1]，標籤已整理為 8 個器官，並依 TransUNet 公開切分分為 18 訓練 / 12 測試。
+
+1. 下載 TransUNet 提供的 BTCV 前處理資料（公開，無需申請）：TransUNet 官方倉庫 README 的「Prepare data」一節，連結為 [BTCV preprocessed data](https://drive.google.com/drive/folders/1ACJEoTp-uqfFJ73qS3eUObQh52nGuzCd?usp=sharing)（倉庫：https://github.com/Beckschen/TransUNet）。解壓後取 `data/Synapse/` 底下的 `train_npz/` 與 `test_vol_h5/`。
+2. 放置於 `$TRANSUNET_SYNAPSE`，結構如下：
 
 ```
-$BTCV_NIFTI/
-  imagesTr/case0005.nii.gz … （18 例）
-  labelsTr/case0005.nii.gz … （18 例，標籤 0–8）
-  imagesTs/case0001.nii.gz … （12 例）
-  labelsTs/case0001.nii.gz … （12 例，標籤 0–8）
+$TRANSUNET_SYNAPSE/
+  train_npz/case0005_slice000.npz …    18 例訓練資料（2D 切片）
+  test_vol_h5/case0001.npy.h5 …        12 例測試資料（3D 體積）
 ```
-
-轉換：
 
 ```bash
-python3 data_conversion/convert_btcv_to_nnunet.py
+ls $TRANSUNET_SYNAPSE/test_vol_h5 | wc -l     # 應為 12
+ls $TRANSUNET_SYNAPSE/train_npz | sed 's/_slice.*//' | sort -u | wc -l   # 應為 18
+```
+
+3. 轉為 NIfTI，再轉為 nnU-Net 格式：
+
+```bash
+cd $PSI_ROOT/psi-weighted-nnunet
+python3 data_conversion/convert_transunet_to_nifti.py   # → $BTCV_NIFTI（訓練切片重組為 3D）
+python3 data_conversion/convert_btcv_to_nnunet.py       # → Dataset115_BTCV（18 / 12，含測試標註）
 ```
 
 **檢查**：
@@ -129,7 +142,15 @@ python3 data_conversion/convert_btcv_to_nnunet.py
 ```bash
 ls $nnUNet_raw/Dataset115_BTCV/imagesTs | sed 's/_0000.nii.gz//' | diff - splits/btcv_test_cases.txt && echo "BTCV 測試集一致"
 ls $nnUNet_raw/Dataset115_BTCV/labelsTs | wc -l      # 應為 12
+paste -d, <(ls $nnUNet_raw/Dataset115_BTCV/imagesTr | sed 's/_0000.nii.gz//') <(ls $BTCV_NIFTI/imagesTr | sed 's/.nii.gz//') \
+  | diff - <(tail -n +2 splits/btcv_train_mapping.csv) && echo "BTCV 訓練集對應一致"
+python3 -c "import nibabel as nib; im=nib.load('$nnUNet_raw/Dataset115_BTCV/imagesTr/BTCV_001_0000.nii.gz'); \
+print('間距', im.header.get_zooms(), '強度範圍', float(im.get_fdata().min()), float(im.get_fdata().max()))"
 ```
+
+預期：間距 `(1.0, 1.0, 1.0)`、強度範圍約 0 到 1。
+
+> 不需要從 Synapse 下載原始 BTCV。若另行下載原始 CT，其強度與間距皆不同，結果將無法對上。
 
 ---
 
@@ -179,27 +200,32 @@ ls $PSI_ROOT/tree_features/wcases_*.csv | wc -l      # 應為 7
 
 清單的產生方式見 `docs/METHODS.md` 第 5 節；也可在第 6 步後以 `psi/make_weight_lists.py` 重新產生並比對。
 
+### 訓練前總檢查（必做）
+
+```bash
+cd $PSI_ROOT/psi-weighted-nnunet
+bash verification/preflight.sh
+```
+
+檢查環境變數、nnU-Net 版本、trainer 安裝、原始資料數量、切分、plans、加權清單共約 30 項。**最後一行必須顯示「失敗 0 項」才開始訓練。**
+
 ---
 
 ## 5. 訓練 baseline
 
+GPU 只有一張，所有訓練**依序排成一個佇列**，一次只跑一個，避免記憶體不足。
+
 ```bash
-cd ~ && source $PSI_ROOT/psi-weighted-nnunet/env.sh
-
-# BTCV：5 折，1000 epochs
-nohup bash -c 'for f in 0 1 2 3 4; do nnUNetv2_train 115 2d $f --npz; done' \
-  > $PSI_ROOT/train_btcv_baseline.log 2>&1 &
-
-# ACDC：all 模式，500 epochs（上一個結束後再執行，或另開 GPU）
-nohup bash -c 'nnUNetv2_train 116 2d all -tr nnUNetTrainer_500epochs --npz' \
-  > $PSI_ROOT/train_acdc_baseline.log 2>&1 &
-
-# ACDC：5 折 OOF，供 proxy 篩選（500 epochs）
-nohup bash -c 'for f in 0 1 2 3 4; do nnUNetv2_train 116 2d $f -tr nnUNetTrainer_500epochs --npz; done' \
-  > $PSI_ROOT/train_acdc_oof.log 2>&1 &
+source ~/psi_workspace/psi-weighted-nnunet/env.sh     # 換成你的倉庫路徑
+cd ~
+nohup bash -c '
+  for f in 0 1 2 3 4; do nnUNetv2_train 115 2d $f --npz; done                              # BTCV 5 折，1000 epochs
+  nnUNetv2_train 116 2d all -tr nnUNetTrainer_500epochs --npz                              # ACDC all，500 epochs
+  for f in 0 1 2 3 4; do nnUNetv2_train 116 2d $f -tr nnUNetTrainer_500epochs --npz; done   # ACDC 5 折 OOF
+' > $PSI_ROOT/train_step5_baseline.log 2>&1 &
 ```
 
-GPU 只有一張時，請一個跑完再啟動下一個。
+合計約 2.5 天。進度：`tail -f $PSI_ROOT/train_step5_baseline.log`；確認目前只有一個訓練程序：`nvidia-smi`。
 
 **檢查**（ACDC 5 折必須讀到分組切分）：
 
@@ -213,6 +239,8 @@ grep -h "split file\|This split has" $nnUNet_results/Dataset116_ACDC/nnUNetTrain
 
 ## 6. Ψ 計算與 proxy 篩選（驗證用，可選）
 
+`run_psi8_btcv.py` 會呼叫 `nnUNetv2_predict`，需要 GPU：請在第 5 步的佇列結束後才執行。
+
 加權清單已在第 4 步提供；此步驟用來重現篩選過程。
 
 ```bash
@@ -222,6 +250,8 @@ python3 psi/run_all_psi.py            # 所有資料集的 Ψ；缺少的資料�
 python3 psi/recompute_caselevel.py    # 病例層級聚合、AUC、p 值
 python3 psi/make_weight_lists.py      # 依規則重新產生清單，與第 4 步的清單比對
 ```
+
+`run_all_psi.py` 中的 `ACDC` 項讀取的是測試集預測（`nnUNet/acdc_test_pred`），需在第 8 步之後才有資料；在此之前執行時會自動略過，不影響 BTCV 與 ACDC_OOF。
 
 **預期**（`recompute_caselevel.py`，最低 30% 口徑）：
 
@@ -234,19 +264,22 @@ python3 psi/make_weight_lists.py      # 依規則重新產生清單，與第 4 �
 
 ## 7. 訓練專家模型與對照組
 
+**等第 5 步（以及第 6 步的 Ψ8 推論，若有執行）完全結束後**再啟動。同樣排成單一佇列：
+
 ```bash
-cd ~ && source $PSI_ROOT/psi-weighted-nnunet/env.sh
-
-# BTCV 專家（每個 5 折 × 1000 epochs，依序執行）
-nohup bash -c 'for t in psi1w3 psi6w3 psi8w3; do
-  for f in 0 1 2 3 4; do nnUNetv2_train 115 2d $f -tr nnUNetTrainer_btcv_$t --npz; done; done' \
-  > $PSI_ROOT/train_btcv_experts.log 2>&1 &
-
-# ACDC 專家與對照組（每個 all × 500 epochs）
-nohup bash -c 'for t in psi1w3 psi6w3 psi7w3 psi10w3 ps1ctrl; do
-  nnUNetv2_train 116 2d all -tr nnUNetTrainer_500epochs_$t --npz; done' \
-  > $PSI_ROOT/train_acdc_experts.log 2>&1 &
+source ~/psi_workspace/psi-weighted-nnunet/env.sh     # 換成你的倉庫路徑
+cd ~
+nohup bash -c '
+  for t in psi1w3 psi6w3 psi8w3; do                                   # BTCV 專家：每個 5 折 × 1000 epochs
+    for f in 0 1 2 3 4; do nnUNetv2_train 115 2d $f -tr nnUNetTrainer_btcv_$t --npz; done
+  done
+  for t in psi1w3 psi6w3 psi7w3 psi10w3 ps1ctrl; do                  # ACDC 專家與對照組：每個 all × 500 epochs
+    nnUNetv2_train 116 2d all -tr nnUNetTrainer_500epochs_$t --npz
+  done
+' > $PSI_ROOT/train_step7_experts.log 2>&1 &
 ```
+
+合計約 6–7 天。
 
 **檢查**（每個模型啟動後都要確認加權生效）：
 
@@ -272,7 +305,8 @@ ps1ctrl 的每 epoch 時間必須約 100 秒（與專家相同）；若約 44 �
 輸出資料夾名稱會被分析程式讀取，**請勿更改**。
 
 ```bash
-cd ~ && source $PSI_ROOT/psi-weighted-nnunet/env.sh
+source ~/psi_workspace/psi-weighted-nnunet/env.sh     # 換成你的倉庫路徑
+cd ~
 
 # BTCV：5 折 ensemble
 for t in nnUNetTrainer nnUNetTrainer_btcv_psi1w3 nnUNetTrainer_btcv_psi6w3 nnUNetTrainer_btcv_psi8w3; do

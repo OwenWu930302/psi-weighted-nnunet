@@ -4,7 +4,7 @@ Dice 分布圖（取代 plot_dice_hist.py）
 直接讀 dice_tables.py 的輸出，不依賴其他中間檔。
 兩個資料集、所有模型、測試集。
 
-輸出（PNG，300 dpi）：~/桌面/論文/figs/
+輸出（PNG，300 dpi）：$PSI_ROOT/figs/
   dice_hist_<資料集>_<模型>.png   每個模型一張，一列一個結構
   dice_overlay_<資料集>.png       所有模型的病例平均 Dice 分布疊圖
   dice_paired_<資料集>.png        每個專家對 baseline 的逐例差異（配對）
@@ -22,7 +22,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 
-H = os.environ.get('PSI_ROOT', os.path.expanduser('~/桌面/論文'))
+H = os.environ.get('PSI_ROOT', os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 SRC = f'{H}/tree_features/dice_tables'
 OUT = f'{H}/figs'
 os.makedirs(OUT, exist_ok=True)

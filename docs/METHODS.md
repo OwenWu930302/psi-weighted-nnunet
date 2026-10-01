@@ -30,7 +30,7 @@
 
 測試集標註的檔名（`case0001` 等）與 nnU-Net 編號（`BTCV_019` 等）以**影像內容逐像素比對**建立對應，不依檔名推測（對應表見 `splits/`）。
 
-**輸入資料的性質**：本研究的 BTCV 影像取自 TransUNet 公開的 Synapse 前處理資料，強度已截斷並縮放到 0–1，轉為 NIfTI 時體素間距為 1 mm（見 `configs/btcv_nnUNetPlans.json` 的 `original_median_spacing_after_transp` 與強度統計）。因此 nnU-Net 的 CTNormalization 是作用在已縮放的強度上，且體素間距不代表真實物理尺寸。
+**輸入資料的性質**：本研究的 BTCV 影像取自 TransUNet 公開的 Synapse 前處理資料，強度已截斷並縮放到 0–1，轉為 NIfTI 時體素間距為 1 mm（見 `configs/btcv_nnUNetPlans.json` 的 `original_median_spacing_after_transp` 與強度統計）。因此 nnU-Net 的 CTNormalization 是作用在已縮放的強度上，且體素間距不代表真實物理尺寸。轉換程式見 `data_conversion/convert_transunet_to_nifti.py`。
 
 ### 2.2 ACDC
 

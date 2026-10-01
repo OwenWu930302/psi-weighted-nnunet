@@ -1,7 +1,7 @@
 """
 最終數據整理：所有比較輸出成 CSV
 ============================================================
-輸出目錄：~/桌面/論文/tree_features/final_report/
+輸出目錄：$PSI_ROOT/tree_features/final_report/
 
   1_test_overall.csv        測試集：各模型 vs anchor（整體、最差 30%、Wilcoxon）
   2_test_per_structure.csv  測試集：逐器官 / 逐結構
@@ -19,7 +19,7 @@
 
 用法：
   conda activate expertree
-  cd ~/桌面/論文
+  source <倉庫>/env.sh
   python3 final_report.py
 """
 import glob
@@ -31,7 +31,7 @@ import numpy as np
 import pandas as pd
 from scipy.stats import mannwhitneyu, wilcoxon
 
-H = os.environ.get('PSI_ROOT', os.path.expanduser('~/桌面/論文'))
+H = os.environ.get('PSI_ROOT', os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 RES = f'{H}/nnUNet_data/nnUNet_results'
 TF = f'{H}/tree_features'
 OUT = f'{TF}/final_report'

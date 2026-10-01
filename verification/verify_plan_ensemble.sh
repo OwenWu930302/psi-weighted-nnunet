@@ -3,8 +3,9 @@
 # 驗證：規劃參數與 ensemble 預測是否與官方 nnU-Net 相同
 # 用法：conda activate expertree && bash verify_plan_ensemble.sh
 # ============================================================
+export PSI_ROOT="${PSI_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)}"   # 預設：倉庫的上一層
 set -u
-H="${PSI_ROOT:-$HOME/桌面/論文}"
+H="${PSI_ROOT}"
 PRE="$H/nnUNet_data/nnUNet_preprocessed"
 OUT="$H/verify_plan_ensemble_$(date +%Y%m%d_%H%M%S).txt"
 export nnUNet_raw="$H/nnUNet_data/nnUNet_raw"
@@ -59,7 +60,7 @@ echo
 echo "===== 3. 完整規劃參數（論文用） ====="
 python3 - <<'PY'
 import json, os
-PRE = os.path.join(os.environ.get('PSI_ROOT', os.path.expanduser('~/桌面/論文')), 'nnUNet_data/nnUNet_preprocessed')
+PRE = os.path.join(os.environ['PSI_ROOT'], 'nnUNet_data/nnUNet_preprocessed')
 for d in ['Dataset115_BTCV', 'Dataset116_ACDC']:
     p = json.load(open(f'{PRE}/{d}/nnUNetPlans.json'))
     c = p['configurations']['2d']; a = c['architecture']['arch_kwargs']

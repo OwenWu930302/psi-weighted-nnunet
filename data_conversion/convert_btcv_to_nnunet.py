@@ -21,7 +21,7 @@ import json
 import os
 import shutil
 
-ROOT = os.environ.get('PSI_ROOT', os.path.expanduser('~/桌面/論文'))
+ROOT = os.environ.get('PSI_ROOT', os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 SRC = os.environ.get('BTCV_NIFTI', os.path.join(ROOT, 'BTCV_nifti'))
 DST = os.path.join(ROOT, 'nnUNet_data/nnUNet_raw/Dataset115_BTCV')
 

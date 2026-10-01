@@ -9,3 +9,4 @@ SimpleITK==2.5.5
 nibabel==5.4.2
 matplotlib==3.10.9
 opencv-python-headless
+h5py

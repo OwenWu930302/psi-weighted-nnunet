@@ -4,8 +4,9 @@
 # 每一項皆為本機即時執行結果
 # 用法：conda activate expertree && bash plan_ensemble_report.sh
 # ============================================================
+export PSI_ROOT="${PSI_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)}"   # 預設：倉庫的上一層
 set -u
-H="${PSI_ROOT:-$HOME/桌面/論文}"
+H="${PSI_ROOT}"
 PRE="$H/nnUNet_data/nnUNet_preprocessed"
 RES="$H/nnUNet_data/nnUNet_results"
 OUT="$H/plan_ensemble_report_$(date +%Y%m%d_%H%M%S).txt"
@@ -67,7 +68,7 @@ echo
 echo "【3】實際使用的規劃參數（2D，本研究採用）"
 python3 - <<'PY'
 import json, os
-PRE=os.path.join(os.environ.get('PSI_ROOT', os.path.expanduser('~/桌面/論文')), 'nnUNet_data/nnUNet_preprocessed')
+PRE=os.path.join(os.environ['PSI_ROOT'], 'nnUNet_data/nnUNet_preprocessed')
 ks=['batch_size','patch_size','spacing','median_image_size_in_voxels',
     'normalization_schemes','use_mask_for_norm','batch_dice']
 A={d: json.load(open(f'{PRE}/{d}/nnUNetPlans.json'))['configurations']['2d']

@@ -1,7 +1,7 @@
 """
 Dice 數據表輸出
 ============================================================
-輸出目錄：~/桌面/論文/tree_features/dice_tables/
+輸出目錄：$PSI_ROOT/tree_features/dice_tables/
 
 一、每個模型、每位病人的 Dice（baseline 與專家都有）
     dice_<資料集>_<資料來源>_<模型>.csv
@@ -23,7 +23,7 @@ Dice 數據表輸出
 
 用法：
   conda activate expertree
-  cd ~/桌面/論文
+  source <倉庫>/env.sh
   python3 dice_tables.py
 """
 import glob
@@ -34,7 +34,7 @@ import re
 import numpy as np
 import pandas as pd
 
-H = os.environ.get('PSI_ROOT', os.path.expanduser('~/桌面/論文'))
+H = os.environ.get('PSI_ROOT', os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 RES = f'{H}/nnUNet_data/nnUNet_results'
 TF = f'{H}/tree_features'
 OUT = f'{TF}/dice_tables'

@@ -5,7 +5,7 @@
 
 用法:
     conda activate expertree
-    cd ~/桌面/論文
+    source <倉庫>/env.sh
     python3 run_all_psi.py
 
 輸出:
@@ -31,7 +31,7 @@ except ImportError:
 from scipy.ndimage import label as cclabel, binary_fill_holes
 from PIL import Image
 
-R = os.environ.get('PSI_ROOT', os.path.expanduser('~/桌面/論文'))
+R = os.environ.get('PSI_ROOT', os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 OUT = os.path.join(R, 'tree_features')
 os.makedirs(OUT, exist_ok=True)
 DELTA = 0.80

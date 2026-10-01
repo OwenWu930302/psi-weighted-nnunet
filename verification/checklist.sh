@@ -3,8 +3,9 @@
 # 實驗進度檢查表（每項皆由終端機即時驗證）
 # 用法：conda activate expertree && bash checklist.sh
 # ============================================================
+export PSI_ROOT="${PSI_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)}"   # 預設：倉庫的上一層
 set -u
-H="${PSI_ROOT:-$HOME/桌面/論文}"
+H="${PSI_ROOT}"
 R="$H/nnUNet_data/nnUNet_results"
 RAW="$H/nnUNet_data/nnUNet_raw"
 PRE="$H/nnUNet_data/nnUNet_preprocessed"
@@ -53,7 +54,7 @@ row "$(yn $ATR 160)" "ACDC 80/20 病人（160/40 影像）" "訓練 $ATR、測�
 
 python3 - <<'PY'
 import json, os, csv
-H=os.environ.get('PSI_ROOT', os.path.expanduser('~/桌面/論文'))
+H=os.environ['PSI_ROOT']
 def row(a,b,c): print(f"{a:<2} {b:<34} {c}")
 # BTCV 5 折
 try:

@@ -4,13 +4,14 @@
 # 目的：以 git 證明本機 nnU-Net 與官方 v2.8.1 的一致性，
 #       並列出所有差異與 Ψ 加權 trainer 的 train_step。
 # 用法：conda activate expertree && bash verify_nnunet.sh
-# 輸出：~/桌面/論文/nnunet_verification_<時間>.txt
+# 輸出：$PSI_ROOT/nnunet_verification_<時間>.txt
 # ============================================================
+export PSI_ROOT="${PSI_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)}"   # 預設：倉庫的上一層
 set -u
-REPO="${PSI_ROOT:-$HOME/桌面/論文}/nnUNet"
+REPO="${PSI_ROOT}/nnUNet"
 TAG="v2.8.1"
 PSI="nnunetv2/training/nnUNetTrainer/variants/training_length/nnUNetTrainer_PsiWeighted.py"
-OUT="${PSI_ROOT:-$HOME/桌面/論文}/nnunet_verification_$(date +%Y%m%d_%H%M%S).txt"
+OUT="${PSI_ROOT}/nnunet_verification_$(date +%Y%m%d_%H%M%S).txt"
 CORE=(
   nnunetv2/training/nnUNetTrainer/nnUNetTrainer.py
   nnunetv2/training/nnUNetTrainer/variants/training_length/nnUNetTrainer_Xepochs.py

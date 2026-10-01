@@ -11,14 +11,14 @@ Eq.(8):  Ψ_rot(x, ŷ) = 1 − Dice(R_φ(ŷ), I(σ(f(R_φ(x))) > 0.5))
 
 用法:
     conda activate expertree
-    cd ~/桌面/論文
+    source <倉庫>/env.sh
     python3 run_psi8_btcv.py
 """
 import os, glob, subprocess, csv
 import numpy as np, nibabel as nib
 from scipy.ndimage import rotate
 
-R      = os.environ.get('PSI_ROOT', os.path.expanduser('~/桌面/論文'))
+R      = os.environ.get('PSI_ROOT', os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 RAW    = f'{R}/nnUNet_data/nnUNet_raw/Dataset115_BTCV'
 RESULT = f'{R}/nnUNet_data/nnUNet_results/Dataset115_BTCV/nnUNetTrainer__nnUNetPlans__2d'
 WORK   = f'{R}/psi8_btcv_work'

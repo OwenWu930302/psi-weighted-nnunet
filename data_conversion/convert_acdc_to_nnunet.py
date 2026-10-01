@@ -27,7 +27,7 @@ import shutil
 from pathlib import Path
 
 # ------------------------- 路徑設定 -------------------------
-ROOT = Path(os.environ.get('PSI_ROOT', os.path.expanduser('~/桌面/論文')))
+ROOT = Path(os.environ.get('PSI_ROOT', os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))))
 ACDC_ROOT = Path(os.environ.get('ACDC_RAW', ROOT / 'SAMA-UNet_repo/ACDC/database/training'))
 OUT_ROOT = ROOT / 'nnUNet_data/nnUNet_raw/Dataset116_ACDC'
 

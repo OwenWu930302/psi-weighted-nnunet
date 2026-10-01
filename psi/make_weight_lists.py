@@ -18,7 +18,7 @@ import sys
 
 import pandas as pd
 
-H = os.environ.get('PSI_ROOT', os.path.expanduser('~/桌面/論文'))
+H = os.environ.get('PSI_ROOT', os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 TF = f'{H}/tree_features'
 OUT = f'{TF}/regenerated'
 

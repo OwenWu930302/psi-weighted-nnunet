@@ -1,6 +1,7 @@
 #!/bin/bash
 # 當場示範：6 項，每項只印 1-3 行，全部來自 nnU-Net 自己產生的原始檔案
-H="${PSI_ROOT:-$HOME/桌面/論文}"
+export PSI_ROOT="${PSI_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)}"   # 預設：倉庫的上一層
+H="${PSI_ROOT}"
 R=$H/nnUNet_data/nnUNet_results
 P=$H/nnUNet_data/nnUNet_preprocessed
 

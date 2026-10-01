@@ -28,8 +28,8 @@
 ### 0.2 流程與對應程式
 
 ```
-convert_btcv_to_nnunet.py ─┐
-convert_acdc_to_nnunet.py ─┴→ nnU-Net 規劃、前處理、訓練 baseline（官方）
+convert_transunet_to_nifti.py → convert_btcv_to_nnunet.py ─┐
+                                convert_acdc_to_nnunet.py ─┴→ nnU-Net 規劃、前處理、訓練 baseline（官方）
                                    │  OOF 預測（fold_*/validation/）
                                    ▼
                run_psi8_btcv.py ─┐
@@ -122,7 +122,7 @@ $$L = \frac{\sum_i w_i \cdot L_{CE+Dice+DS}(x_i)}{\sum_i w_i}$$
 
 ### 1.4 子類別 [新增]
 
-子類別只設定三項：清單路徑、倍率、訓練長度。清單資料夾 `_TF = $PSI_ROOT/tree_features`（未設定 `PSI_ROOT` 時為 `~/桌面/論文/tree_features`）。
+子類別只設定三項：清單路徑、倍率、訓練長度。清單資料夾 `_TF = $PSI_ROOT/tree_features`；未設定 `PSI_ROOT` 時，由 trainer 檔案位置往上推 7 層（即 `$PSI_ROOT/nnUNet/...` 的工作區）。
 
 | 類別 | 清單 | 倍率 | epochs | 設定方式 |
 |---|---|---|---|---|
@@ -268,6 +268,15 @@ $$\Psi_8 = 1 - \text{Dice}\big(\hat{y},\ R_{-\varphi}(f(R_{\varphi}(x)))\big), \
 
 ## 6. 資料轉換
 
+### 6.0 `convert_transunet_to_nifti.py`（BTCV 的實際資料來源）
+
+| 項目 | 內容 |
+|---|---|
+| 輸入 | TransUNet 前處理的 Synapse 資料：`train_npz/`（2D 切片）、`test_vol_h5/`（3D 體積） |
+| 處理 | 訓練切片依編號排序後堆疊為 3D；陣列由 (D, H, W) 轉為 (H, W, D)；以單位矩陣 affine 存成 NIfTI |
+| 輸出 | `$BTCV_NIFTI/imagesTr`、`labelsTr`（18）、`imagesTs`、`labelsTs`（12） |
+| 影響 | 強度維持 TransUNet 的 [0, 1] 縮放；體素間距成為 1 × 1 × 1 mm，不代表真實物理尺寸 |
+
 ### 6.1 `convert_btcv_to_nnunet.py`
 
 | 項目 | 內容 |
@@ -316,7 +325,7 @@ nnU-Net 的輸出是**互斥**的標籤圖（每個像素只有一個標籤）�
 
 ### 7.4 路徑設定（已處理）
 
-原本所有程式皆寫死 `~/桌面/論文`。現已統一改為讀取環境變數 `PSI_ROOT`（由 `env.sh` 設定），未設定時仍預設為原作者路徑，因此原環境的行為不變。
+原本所有程式皆寫死原作者的本機路徑。現已統一改為讀取環境變數 `PSI_ROOT`（由 `env.sh` 設定）；未設定時，各程式由自身檔案位置推得工作區（倉庫的上一層）。只要依 `docs/REPRODUCE.md` 的資料夾配置，任何新終端機 `source env.sh` 即可。
 
 ### 7.5 ACDC 的 Ψ8 只有測試集
 
