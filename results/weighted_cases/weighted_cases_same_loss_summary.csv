@@ -1,0 +1,5 @@
+﻿dataset,expert,list_file,control,prediction_source,n_weighted,before_control,after_expert,delta,提升,下降,wilcoxon_p
+ACDC,psi1w3,wcases_psi1_convex.csv,500epochs_ps1ctrl,fold_all 訓練集預測,48,0.9578,0.9727,0.0150,48,0,0.0000
+ACDC,psi6w3,wcases_psi6_cc.csv,500epochs_ps1ctrl,fold_all 訓練集預測,46,0.9577,0.9638,0.0061,46,0,0.0000
+ACDC,psi7w3,wcases_psi7_genus.csv,500epochs_ps1ctrl,fold_all 訓練集預測,20,0.9592,0.9778,0.0187,20,0,0.0000
+ACDC,psi10w3,wcases_acdc_psi10_centroid.csv,500epochs_ps1ctrl,fold_all 訓練集預測,48,0.9589,0.9604,0.0016,39,9,0.0000
