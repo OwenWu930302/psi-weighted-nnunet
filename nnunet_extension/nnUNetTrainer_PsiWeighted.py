@@ -440,7 +440,6 @@ class nnUNetTrainer_500epochs_psi10w3(nnUNetTrainer_PsiWeighted):
         os.environ['PSI_WEIGHT_FACTOR'] = '3.0'
         super().__init__(plans, configuration, fold, dataset_json, device)
 
-
 class nnUNetTrainer_500epochs_ps1ctrl(nnUNetTrainer_PsiWeighted):
     """ACDC 對照組：與 Ψ1 專家同一份清單、同一條逐樣本路徑，權重約為 1。
     倍率 1.0001 是為了避開 train_step 中 allclose(w, 1) 的原始路徑。
@@ -453,5 +452,17 @@ class nnUNetTrainer_500epochs_ps1ctrl(nnUNetTrainer_PsiWeighted):
     NUM_EPOCHS = 500
     def __init__(self, plans, configuration, fold, dataset_json, device=torch.device('cuda')):
         os.environ['PSI_WEIGHT_CASES'] = os.path.join(_TF, 'wcases_psi1_convex.csv')
+        os.environ['PSI_WEIGHT_FACTOR'] = '1.0001'
+        super().__init__(plans, configuration, fold, dataset_json, device)
+
+
+
+
+class nnUNetTrainer_btcv_allctrl(nnUNetTrainer_PsiWeighted):
+    """BTCV 逐樣本對照組：清單＝全部 18 個訓練病例，倍率 1.0001。
+    每張權重都相同 → 加權平均等於簡單平均（等同權重 1），且每個 batch 都走逐張路徑。"""
+    NUM_EPOCHS = 1000
+    def __init__(self, plans, configuration, fold, dataset_json, device=torch.device('cuda')):
+        os.environ['PSI_WEIGHT_CASES'] = os.path.join(_TF, 'wcases_btcv_all.csv')
         os.environ['PSI_WEIGHT_FACTOR'] = '1.0001'
         super().__init__(plans, configuration, fold, dataset_json, device)

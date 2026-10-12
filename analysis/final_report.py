@@ -47,6 +47,7 @@ BTCV_TEST = {
     'psi6w3': f'{H}/btcv_test_pred/nnUNetTrainer_btcv_psi6w3',
     'psi8w3': f'{H}/btcv_test_pred/nnUNetTrainer_btcv_psi8w3',
     'w1ctrl': f'{H}/btcv_test_pred/nnUNetTrainer_btcv_w1ctrl',
+    'allctrl': f'{H}/btcv_test_pred/nnUNetTrainer_btcv_allctrl',
 }
 ACDC_TEST = {
     'anchor':  f'{H}/nnUNet/acdc_test_pred',
@@ -62,6 +63,7 @@ BTCV_OOF = {
     'psi6w3': f'{RES}/Dataset115_BTCV/nnUNetTrainer_btcv_psi6w3__nnUNetPlans__2d',
     'psi8w3': f'{RES}/Dataset115_BTCV/nnUNetTrainer_btcv_psi8w3__nnUNetPlans__2d',
     'w1ctrl': f'{RES}/Dataset115_BTCV/nnUNetTrainer_btcv_w1ctrl__nnUNetPlans__2d',
+    'allctrl': f'{RES}/Dataset115_BTCV/nnUNetTrainer_btcv_allctrl__nnUNetPlans__2d',
 }
 ACDC_ANCHOR_DIR = f'{RES}/Dataset116_ACDC/nnUNetTrainer_500epochs__nnUNetPlans__2d'
 

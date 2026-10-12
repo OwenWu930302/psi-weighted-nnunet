@@ -53,6 +53,7 @@ MODELS = {
         'psi6w3':   ('nnUNetTrainer_btcv_psi6w3',  f'{H}/btcv_test_pred/nnUNetTrainer_btcv_psi6w3'),
         'psi8w3':   ('nnUNetTrainer_btcv_psi8w3',  f'{H}/btcv_test_pred/nnUNetTrainer_btcv_psi8w3'),
         'w1ctrl':   ('nnUNetTrainer_btcv_w1ctrl',  f'{H}/btcv_test_pred/nnUNetTrainer_btcv_w1ctrl'),
+        'allctrl':   ('nnUNetTrainer_btcv_allctrl',  f'{H}/btcv_test_pred/nnUNetTrainer_btcv_allctrl'),
     },
     'ACDC': {
         'baseline': ('nnUNetTrainer_500epochs',         f'{H}/nnUNet/acdc_test_pred'),
