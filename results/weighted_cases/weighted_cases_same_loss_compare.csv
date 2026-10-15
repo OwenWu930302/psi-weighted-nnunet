@@ -1,0 +1,5 @@
+﻿dataset,expert,control,n_weighted,delta_weighted,加權組_提升,加權組_下降,n_unweighted,delta_unweighted,未加權組_提升,未加權組_下降,weighted_minus_unweighted,mannwhitney_p
+ACDC,psi1w3,500epochs_ps1ctrl,48,0.0150,48,0,112,0.0049,111,1,0.0101,0.0000
+ACDC,psi6w3,500epochs_ps1ctrl,46,0.0061,46,0,114,-0.0047,0,114,0.0108,0.0000
+ACDC,psi7w3,500epochs_ps1ctrl,20,0.0187,20,0,140,0.0081,140,0,0.0106,0.0000
+ACDC,psi10w3,500epochs_ps1ctrl,48,0.0016,39,9,112,-0.0072,0,112,0.0087,0.0000
